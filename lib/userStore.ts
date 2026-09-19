@@ -10,7 +10,9 @@ type State = {
   error: string | null;
 };
 
-let state: State = { user: null, isLoading: true, error: null };
+const INITIAL_STATE: State = { user: null, isLoading: true, error: null };
+
+let state: State = INITIAL_STATE;
 const listeners = new Set<() => void>();
 let initPromise: Promise<void> | null = null;
 
@@ -44,7 +46,7 @@ function getSnapshot(): State {
 }
 
 function getServerSnapshot(): State {
-  return { user: null, isLoading: true, error: null };
+  return INITIAL_STATE;
 }
 
 export function useCurrentUser() {
