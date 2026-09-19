@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCurrentUser } from "@/lib/userStore";
+import { signOut } from "@/lib/auth";
 
 export default function Header() {
   const { user, isLoading } = useCurrentUser();
@@ -16,13 +18,33 @@ export default function Header() {
         </span>
       </div>
 
-      <div className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1.5 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
-        <span aria-hidden className="text-sm">
-          ⭐
-        </span>
-        <span className="text-sm font-semibold">
-          {isLoading || !user ? "--" : `${user.points.toLocaleString()} pt`}
-        </span>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1.5 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
+          <span aria-hidden className="text-sm">
+            ⭐
+          </span>
+          <span className="text-sm font-semibold">
+            {isLoading ? "--" : user ? `${user.points.toLocaleString()} pt` : "--"}
+          </span>
+        </div>
+
+        {!isLoading &&
+          (user ? (
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="text-xs font-medium text-neutral-500 underline dark:text-neutral-400"
+            >
+              ログアウト
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="text-xs font-semibold text-orange-600 underline dark:text-orange-400"
+            >
+              ログイン
+            </Link>
+          ))}
       </div>
     </header>
   );

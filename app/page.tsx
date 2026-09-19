@@ -1,15 +1,28 @@
 "use client";
 
+import Link from "next/link";
 import PracticeLogForm from "@/components/PracticeLogForm";
 import PracticeLogCard from "@/components/PracticeLogCard";
 import { usePracticeLogs } from "@/lib/usePracticeLogs";
+import { useCurrentUser } from "@/lib/userStore";
 
 export default function TimelinePage() {
+  const { user, isLoading: isUserLoading } = useCurrentUser();
   const { logs, isReady, error, addLog, toggleLike } = usePracticeLogs();
 
   return (
     <div className="flex flex-col gap-4">
-      <PracticeLogForm onSubmit={addLog} />
+      {!isUserLoading &&
+        (user ? (
+          <PracticeLogForm onSubmit={addLog} />
+        ) : (
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-900">
+            <Link href="/login" className="font-semibold text-orange-600 underline">
+              ログイン
+            </Link>
+            すると練習ログを投稿できます
+          </div>
+        ))}
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">

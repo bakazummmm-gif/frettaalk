@@ -1,21 +1,77 @@
--- FretTalk 初期スキーマ
+-- FretTalk スキーマ v2: Supabase Auth連携 + アドバイザー承認制
 -- Supabaseダッシュボード → SQL Editor に貼り付けて実行してください。
--- 実行後、users / my_gear / practice_logs / likes / streaks の5テーブルが作成されます。
+--
+-- v1(認証なし版)を既に実行済みの場合は、下の「クリーンアップ」で
+-- 古いテーブルを削除してからこのファイルをまるごと実行してください。
+-- (テスト投稿などのデータは消えます)
+
+-- ============================================================
+-- クリーンアップ(初回実行時は何も存在しないため無視されます)
+-- ============================================================
+drop table if exists public.advisor_applications cascade;
+drop table if exists public.streaks cascade;
+drop table if exists public.likes cascade;
+drop table if exists public.practice_logs cascade;
+drop table if exists public.my_gear cascade;
+drop table if exists public.users cascade;
 
 -- uuid生成用(Supabaseプロジェクトでは通常デフォルトで有効)
 create extension if not exists pgcrypto;
 
--- 1. users: アプリ利用者
-create table if not exists public.users (
-  id uuid primary key default gen_random_uuid(),
+-- 1. users: Supabase Auth(auth.users)と1:1で連動するプロフィール
+create table public.users (
+  id uuid primary key references auth.users(id) on delete cascade,
   name text not null,
   avatar_url text,
   points integer not null default 0,
+  is_advisor boolean not null default false,
+  advisor_status text not null default 'none'
+    check (advisor_status in ('none', 'pending', 'approved', 'rejected')),
   created_at timestamptz not null default now()
 );
 
+-- 新規サインアップ(auth.users への insert)があったら自動でpublic.usersにも行を作る
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.users (id, name)
+  values (new.id, coalesce(new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1)));
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- is_advisor / advisor_status / points はユーザー自身が書き換えられないように保護。
+-- 変更できるのはservice_role(サーバー側の管理操作、またはSupabaseダッシュボードでの手動更新)のみ。
+create or replace function public.protect_privileged_user_columns()
+returns trigger
+language plpgsql
+security definer
+as $$
+begin
+  if auth.role() <> 'service_role' then
+    new.is_advisor := old.is_advisor;
+    new.advisor_status := old.advisor_status;
+    new.points := old.points;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_privileged_columns on public.users;
+create trigger protect_privileged_columns
+  before update on public.users
+  for each row execute function public.protect_privileged_user_columns();
+
 -- 2. my_gear: ユーザーの愛用機材(メイン/サブ)
-create table if not exists public.my_gear (
+create table public.my_gear (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   gear_type text not null check (gear_type in ('first', 'second')),
@@ -28,7 +84,7 @@ create table if not exists public.my_gear (
 );
 
 -- 3. practice_logs: 練習ログ投稿
-create table if not exists public.practice_logs (
+create table public.practice_logs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   duration_minutes integer not null check (duration_minutes > 0),
@@ -38,7 +94,7 @@ create table if not exists public.practice_logs (
 );
 
 -- 4. likes: 練習ログへのいいね(1ユーザー1ログにつき1回まで)
-create table if not exists public.likes (
+create table public.likes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   log_id uuid not null references public.practice_logs(id) on delete cascade,
@@ -47,61 +103,81 @@ create table if not exists public.likes (
 );
 
 -- 5. streaks: 連続記録日数
-create table if not exists public.streaks (
+create table public.streaks (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade unique,
   consecutive_days integer not null default 0,
   last_liked_at timestamptz
 );
 
--- 検索性能向上用インデックス
-create index if not exists idx_my_gear_user_id on public.my_gear(user_id);
-create index if not exists idx_practice_logs_user_id on public.practice_logs(user_id);
-create index if not exists idx_practice_logs_created_at on public.practice_logs(created_at desc);
-create index if not exists idx_likes_log_id on public.likes(log_id);
-create index if not exists idx_likes_user_id on public.likes(user_id);
+-- 6. advisor_applications: アドバイザー申請(承認は運営が手動で行う)
+create table public.advisor_applications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  message text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now()
+);
 
--- Row Level Security
--- 現時点ではSupabase Authを導入していないため、anonキーからの読み書きを許可する
--- 開発用ポリシーにしています。Authを導入したら user_id = auth.uid() 等に絞ってください。
+-- 検索性能向上用インデックス
+create index idx_my_gear_user_id on public.my_gear(user_id);
+create index idx_practice_logs_user_id on public.practice_logs(user_id);
+create index idx_practice_logs_created_at on public.practice_logs(created_at desc);
+create index idx_likes_log_id on public.likes(log_id);
+create index idx_likes_user_id on public.likes(user_id);
+create index idx_advisor_applications_user_id on public.advisor_applications(user_id);
+
+-- ============================================================
+-- Row Level Security: ログインユーザー本人のみ書き込みできるようにする
+-- ============================================================
 alter table public.users enable row level security;
 alter table public.my_gear enable row level security;
 alter table public.practice_logs enable row level security;
 alter table public.likes enable row level security;
 alter table public.streaks enable row level security;
+alter table public.advisor_applications enable row level security;
 
+-- users: プロフィール(名前・ポイントなど)は公開閲覧、更新は本人のみ
+-- (is_advisor / advisor_status / points は上のトリガーで書き換え不可)
 create policy "users_select_all" on public.users for select using (true);
-create policy "users_insert_all" on public.users for insert with check (true);
-create policy "users_update_all" on public.users for update using (true);
+create policy "users_update_own" on public.users for update using (auth.uid() = id);
 
+-- my_gear: 一覧は公開、書き込みは本人のみ
 create policy "my_gear_select_all" on public.my_gear for select using (true);
-create policy "my_gear_insert_all" on public.my_gear for insert with check (true);
-create policy "my_gear_update_all" on public.my_gear for update using (true);
-create policy "my_gear_delete_all" on public.my_gear for delete using (true);
+create policy "my_gear_insert_own" on public.my_gear for insert with check (auth.uid() = user_id);
+create policy "my_gear_update_own" on public.my_gear for update using (auth.uid() = user_id);
+create policy "my_gear_delete_own" on public.my_gear for delete using (auth.uid() = user_id);
 
+-- practice_logs: 一覧は公開、投稿・編集・削除は本人のみ
 create policy "practice_logs_select_all" on public.practice_logs for select using (true);
-create policy "practice_logs_insert_all" on public.practice_logs for insert with check (true);
-create policy "practice_logs_update_all" on public.practice_logs for update using (true);
-create policy "practice_logs_delete_all" on public.practice_logs for delete using (true);
+create policy "practice_logs_insert_own" on public.practice_logs for insert with check (auth.uid() = user_id);
+create policy "practice_logs_update_own" on public.practice_logs for update using (auth.uid() = user_id);
+create policy "practice_logs_delete_own" on public.practice_logs for delete using (auth.uid() = user_id);
 
+-- likes: 一覧は公開、いいね・取り消しは本人のみ
 create policy "likes_select_all" on public.likes for select using (true);
-create policy "likes_insert_all" on public.likes for insert with check (true);
-create policy "likes_delete_all" on public.likes for delete using (true);
+create policy "likes_insert_own" on public.likes for insert with check (auth.uid() = user_id);
+create policy "likes_delete_own" on public.likes for delete using (auth.uid() = user_id);
 
-create policy "streaks_select_all" on public.streaks for select using (true);
-create policy "streaks_insert_all" on public.streaks for insert with check (true);
-create policy "streaks_update_all" on public.streaks for update using (true);
+-- streaks: 本人のみ閲覧・更新可能
+create policy "streaks_select_own" on public.streaks for select using (auth.uid() = user_id);
+create policy "streaks_insert_own" on public.streaks for insert with check (auth.uid() = user_id);
+create policy "streaks_update_own" on public.streaks for update using (auth.uid() = user_id);
+
+-- advisor_applications: 本人のみ閲覧・申請可能(承認/却下は運営がダッシュボードで行う)
+create policy "advisor_applications_select_own" on public.advisor_applications for select using (auth.uid() = user_id);
+create policy "advisor_applications_insert_own" on public.advisor_applications for insert with check (auth.uid() = user_id);
 
 -- ============================================================
--- お試しデータ(任意): タイムラインをすぐ確認したい場合のみ実行してください
+-- アドバイザー承認のやり方(運営 = あなたがSQL Editorで実行)
 -- ============================================================
--- with seed_user as (
---   insert into public.users (name, points) values ('たろう', 1280)
---   returning id
--- )
--- insert into public.practice_logs (user_id, duration_minutes, memo)
--- select id, 45, 'Fメジャーのバレーコードを重点練習。だいぶ音が鳴るようになってきた!' from seed_user
--- union all
--- select id, 20, 'スケール練習(Cメジャー)とメトロノーム60→100でピッキング強化。' from seed_user
--- union all
--- select id, 60, '好きな曲のイントロをコピー。耳コピは時間かかるけど楽しい。' from seed_user;
+-- 1. 申請一覧を確認:
+--   select * from public.advisor_applications where status = 'pending';
+--
+-- 2. 承認する場合(対象のuser_idを申請一覧から確認して差し替え):
+--   update public.users set is_advisor = true, advisor_status = 'approved' where id = '対象のuser_id';
+--   update public.advisor_applications set status = 'approved' where user_id = '対象のuser_id';
+--
+-- 3. 却下する場合:
+--   update public.users set advisor_status = 'rejected' where id = '対象のuser_id';
+--   update public.advisor_applications set status = 'rejected' where user_id = '対象のuser_id';

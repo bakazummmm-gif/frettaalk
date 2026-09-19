@@ -29,7 +29,7 @@ function mapRow(row: LogRow, currentUserId?: string): PracticeLogView {
 }
 
 export function usePracticeLogs() {
-  const { user } = useCurrentUser();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
   const [logs, setLogs] = useState<PracticeLogView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +54,12 @@ export function usePracticeLogs() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    // ログイン状態が確定してから取得する(未ログインでも公開タイムラインは見られる)
+    if (isUserLoading) return;
     // Supabaseへの非同期フェッチなので、setStateはawait後の非同期タイミングで呼ばれる
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh(user.id);
-  }, [user, refresh]);
+    refresh(user?.id);
+  }, [isUserLoading, user, refresh]);
 
   const addLog = useCallback(
     async (minutes: number, memo: string) => {
@@ -82,7 +83,10 @@ export function usePracticeLogs() {
 
   const toggleLike = useCallback(
     async (logId: string) => {
-      if (!user) return;
+      if (!user) {
+        setError("いいねするにはログインしてください");
+        return;
+      }
 
       const target = logs.find((log) => log.id === logId);
       if (!target) return;

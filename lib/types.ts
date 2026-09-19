@@ -1,8 +1,12 @@
+export type AdvisorStatus = "none" | "pending" | "approved" | "rejected";
+
 export type DbUser = {
   id: string;
   name: string;
   avatar_url: string | null;
   points: number;
+  is_advisor: boolean;
+  advisor_status: AdvisorStatus;
   created_at: string;
 };
 
@@ -39,6 +43,14 @@ export type DbStreak = {
   user_id: string;
   consecutive_days: number;
   last_liked_at: string | null;
+};
+
+export type DbAdvisorApplication = {
+  id: string;
+  user_id: string;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
 };
 
 // タイムラインで使う表示用の型(practice_logs + users + likes を結合したもの)
