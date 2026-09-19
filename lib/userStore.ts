@@ -24,7 +24,9 @@ function setState(next: State) {
 async function loadProfile(authUserId: string) {
   const { data, error } = await supabase
     .from("users")
-    .select("id, name, avatar_url, points, is_advisor, advisor_status, created_at")
+    .select(
+      "id, name, avatar_url, points, is_advisor, advisor_status, stripe_payouts_enabled, created_at"
+    )
     .eq("id", authUserId)
     .maybeSingle();
 
