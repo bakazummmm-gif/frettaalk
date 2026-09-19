@@ -7,7 +7,11 @@ import { usePracticeLogs } from "@/lib/usePracticeLogs";
 import { useCurrentUser } from "@/lib/userStore";
 
 export default function TimelinePage() {
-  const { user, isLoading: isUserLoading } = useCurrentUser();
+  const {
+    user,
+    isLoading: isUserLoading,
+    error: userError,
+  } = useCurrentUser();
   const { logs, isReady, error, addLog, toggleLike } = usePracticeLogs();
 
   return (
@@ -23,6 +27,12 @@ export default function TimelinePage() {
             すると練習ログを投稿できます
           </div>
         ))}
+
+      {userError && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">
+          {userError}
+        </p>
+      )}
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">

@@ -31,7 +31,21 @@ async function loadProfile(authUserId: string) {
     .maybeSingle();
 
   if (error) {
+    console.error("[userStore] プロフィール取得に失敗しました:", error);
     setState({ user: null, isLoading: false, error: error.message });
+    return;
+  }
+
+  if (!data) {
+    console.error(
+      "[userStore] auth.usersにはユーザーがいますが、public.usersに対応する行がありません:",
+      authUserId
+    );
+    setState({
+      user: null,
+      isLoading: false,
+      error: "プロフィールが見つかりません。運営に連絡してください。",
+    });
     return;
   }
 
