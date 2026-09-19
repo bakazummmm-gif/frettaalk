@@ -81,14 +81,18 @@ alter table public.payment_events enable row level security;
 
 -- correction_tickets: 当事者(質問者・アドバイザー)のみ閲覧可能。
 -- 作成は質問者本人のみ。支払い確定などのステータス変更はサーバー(service_role/Webhook)のみが行う。
+drop policy if exists "correction_tickets_select_own" on public.correction_tickets;
 create policy "correction_tickets_select_own" on public.correction_tickets
   for select using (auth.uid() = buyer_id or auth.uid() = advisor_id);
+drop policy if exists "correction_tickets_insert_own" on public.correction_tickets;
 create policy "correction_tickets_insert_own" on public.correction_tickets
   for insert with check (auth.uid() = buyer_id);
 
 -- tips: 当事者のみ閲覧可能。作成は送り主本人のみ。ステータス変更はサーバーのみ。
+drop policy if exists "tips_select_own" on public.tips;
 create policy "tips_select_own" on public.tips
   for select using (auth.uid() = from_user_id or auth.uid() = to_user_id);
+drop policy if exists "tips_insert_own" on public.tips;
 create policy "tips_insert_own" on public.tips
   for insert with check (auth.uid() = from_user_id);
 
