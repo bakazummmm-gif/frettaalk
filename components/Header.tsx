@@ -1,8 +1,10 @@
 "use client";
 
-const TOTAL_POINTS = 1280;
+import { useCurrentUser } from "@/lib/userStore";
 
 export default function Header() {
+  const { user, isLoading } = useCurrentUser();
+
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90">
       <div className="flex items-center gap-2">
@@ -19,7 +21,7 @@ export default function Header() {
           ⭐
         </span>
         <span className="text-sm font-semibold">
-          {TOTAL_POINTS.toLocaleString()} pt
+          {isLoading || !user ? "--" : `${user.points.toLocaleString()} pt`}
         </span>
       </div>
     </header>

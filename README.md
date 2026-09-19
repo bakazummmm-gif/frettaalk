@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Supabaseのセットアップ
+
+1. `.env.local.example` を `.env.local` としてコピーし、SupabaseプロジェクトのURLとanon keyを設定する
+2. Supabaseダッシュボードの `SQL Editor` に `supabase/schema.sql` の内容を貼り付けて実行する(`users` / `my_gear` / `practice_logs` / `likes` / `streaks` の5テーブルとRLSポリシーが作成されます)
+3. タイムラインをすぐ確認したい場合は、`schema.sql` 末尾のコメントアウトされたお試しデータ用SQLも実行する
+
 ## Getting Started
 
 First, run the development server:

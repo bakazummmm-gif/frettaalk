@@ -2,14 +2,20 @@
 
 import PracticeLogForm from "@/components/PracticeLogForm";
 import PracticeLogCard from "@/components/PracticeLogCard";
-import { useLogs } from "@/lib/useLogs";
+import { usePracticeLogs } from "@/lib/usePracticeLogs";
 
 export default function TimelinePage() {
-  const { logs, isReady, addLog, toggleLike } = useLogs();
+  const { logs, isReady, error, addLog, toggleLike } = usePracticeLogs();
 
   return (
     <div className="flex flex-col gap-4">
       <PracticeLogForm onSubmit={addLog} />
+
+      {error && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">
+          {error}
+        </p>
+      )}
 
       <div className="flex flex-col gap-3">
         {!isReady && (
@@ -18,7 +24,7 @@ export default function TimelinePage() {
           </p>
         )}
 
-        {isReady && logs.length === 0 && (
+        {isReady && logs.length === 0 && !error && (
           <p className="py-8 text-center text-sm text-neutral-400">
             まだ投稿がありません。最初の練習ログを記録しよう!
           </p>

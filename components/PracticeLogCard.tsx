@@ -1,9 +1,9 @@
 "use client";
 
-import type { PracticeLog } from "@/lib/types";
+import type { PracticeLogView } from "@/lib/types";
 
 type Props = {
-  log: PracticeLog;
+  log: PracticeLogView;
   onToggleLike: (id: string) => void;
 };
 
