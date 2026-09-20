@@ -10,36 +10,28 @@ type LogRow = {
   duration_minutes: number;
   memo: string;
   created_at: string;
-  users: { name: string } | null;
-  likes: { user_id: string }[];
 };
 
-function mapRow(row: LogRow, currentUserId?: string): PracticeLogView {
+function mapRow(row: LogRow): PracticeLogView {
   return {
     id: row.id,
-    author: row.users?.name ?? "ゲスト",
     minutes: row.duration_minutes,
     memo: row.memo,
     createdAt: row.created_at,
-    likes: row.likes.length,
-    liked: currentUserId
-      ? row.likes.some((like) => like.user_id === currentUserId)
-      : false,
   };
 }
 
+// 練習ログは非公開(本人のみ)。マイページのカレンダーで使う。
 export function usePracticeLogs() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const [logs, setLogs] = useState<PracticeLogView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async (currentUserId?: string) => {
+  const refresh = useCallback(async () => {
     const { data, error: fetchError } = await supabase
       .from("practice_logs")
-      .select(
-        "id, duration_minutes, memo, created_at, users(name), likes(user_id)"
-      )
+      .select("id, duration_minutes, memo, created_at")
       .order("created_at", { ascending: false });
 
     if (fetchError) {
@@ -48,18 +40,19 @@ export function usePracticeLogs() {
       return;
     }
 
-    setLogs(((data as unknown as LogRow[]) ?? []).map((row) => mapRow(row, currentUserId)));
+    setLogs(((data as unknown as LogRow[]) ?? []).map(mapRow));
     setError(null);
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    // ログイン状態が確定してから取得する(未ログインでも公開タイムラインは見られる)
-    if (isUserLoading) return;
+    if (isUserLoading || !user) return;
     // Supabaseへの非同期フェッチなので、setStateはawait後の非同期タイミングで呼ばれる
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh(user?.id);
+    refresh();
   }, [isUserLoading, user, refresh]);
+
+  const isReady = !isUserLoading && (!user || !isLoading);
 
   const addLog = useCallback(
     async (minutes: number, memo: string) => {
@@ -76,44 +69,15 @@ export function usePracticeLogs() {
         return;
       }
 
-      await refresh(user.id);
+      await refresh();
     },
     [user, refresh]
   );
 
-  const toggleLike = useCallback(
-    async (logId: string) => {
-      if (!user) {
-        setError("いいねするにはログインしてください");
-        return;
-      }
-
-      const target = logs.find((log) => log.id === logId);
-      if (!target) return;
-
-      const { error: likeError } = target.liked
-        ? await supabase
-            .from("likes")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("log_id", logId)
-        : await supabase.from("likes").insert({ user_id: user.id, log_id: logId });
-
-      if (likeError) {
-        setError(likeError.message);
-        return;
-      }
-
-      await refresh(user.id);
-    },
-    [user, logs, refresh]
-  );
-
   return {
     logs,
-    isReady: !isLoading,
+    isReady,
     error,
     addLog,
-    toggleLike,
   };
 }

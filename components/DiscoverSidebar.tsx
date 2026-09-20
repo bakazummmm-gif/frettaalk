@@ -1,36 +1,39 @@
 "use client";
 
+import Link from "next/link";
 import { useDiscoverSidebar } from "@/lib/useDiscoverSidebar";
 
 export default function DiscoverSidebar() {
-  const { popularLogs, suggestedUsers, isReady } = useDiscoverSidebar();
+  const { popularQuestions, suggestedUsers, isReady } = useDiscoverSidebar();
 
   return (
     <aside className="sticky top-14 order-3 hidden h-[calc(100vh-3.5rem)] w-72 shrink-0 overflow-y-auto p-4 xl:block">
       <div className="flex flex-col gap-4">
         <section className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
           <h2 className="mb-3 text-sm font-bold text-neutral-900 dark:text-neutral-100">
-            人気の投稿
+            人気の質問
           </h2>
 
           {!isReady && (
             <p className="text-xs text-neutral-400">読み込み中...</p>
           )}
 
-          {isReady && popularLogs.length === 0 && (
-            <p className="text-xs text-neutral-400">まだ投稿がありません</p>
+          {isReady && popularQuestions.length === 0 && (
+            <p className="text-xs text-neutral-400">まだ質問がありません</p>
           )}
 
           <ul className="flex flex-col gap-3">
-            {popularLogs.map((log) => (
-              <li key={log.id} className="text-sm">
-                <p className="font-semibold text-neutral-800 dark:text-neutral-100">
-                  {log.author}
+            {popularQuestions.map((question) => (
+              <li key={question.id} className="text-sm">
+                <Link
+                  href={`/questions/${question.id}`}
+                  className="font-semibold text-neutral-800 hover:text-orange-600 dark:text-neutral-100 dark:hover:text-orange-400"
+                >
+                  {question.title}
+                </Link>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {question.author} ・ 回答{question.answerCount}件
                 </p>
-                <p className="line-clamp-2 text-neutral-500 dark:text-neutral-400">
-                  {log.memo}
-                </p>
-                <p className="mt-0.5 text-xs text-pink-500">❤️ {log.likes}</p>
               </li>
             ))}
           </ul>

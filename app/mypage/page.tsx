@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useCurrentUser } from "@/lib/userStore";
 import { useAdvisorApplication } from "@/lib/useAdvisorApplication";
+import { usePracticeLogs } from "@/lib/usePracticeLogs";
 import { getAccessToken } from "@/lib/auth";
+import PracticeLogForm from "@/components/PracticeLogForm";
+import PracticeCalendar from "@/components/PracticeCalendar";
 
 const STATUS_LABEL: Record<string, string> = {
   none: "未申請",
@@ -72,6 +75,30 @@ function AdvisorSection() {
             ? `申請日: ${new Date(application.created_at).toLocaleDateString("ja-JP")}`
             : "運営からの承認をお待ちください。"}
         </p>
+      )}
+    </div>
+  );
+}
+
+function PracticeSection() {
+  const { logs, isReady, error, addLog } = usePracticeLogs();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <PracticeLogForm onSubmit={addLog} />
+
+      {error && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">
+          {error}
+        </p>
+      )}
+
+      {!isReady ? (
+        <p className="py-4 text-center text-sm text-neutral-400">
+          読み込み中...
+        </p>
+      ) : (
+        <PracticeCalendar logs={logs} />
       )}
     </div>
   );
@@ -181,6 +208,7 @@ export default function MyPage() {
         </div>
       </div>
 
+      <PracticeSection />
       <AdvisorSection />
       <StripeConnectSection />
     </div>

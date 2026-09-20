@@ -93,13 +93,59 @@ export type DbTip = {
   created_at: string;
 };
 
-// タイムラインで使う表示用の型(practice_logs + users + likes を結合したもの)
+// マイページのカレンダーで使う表示用の型(本人の練習ログのみ)
 export type PracticeLogView = {
   id: string;
-  author: string;
   minutes: number;
   memo: string;
   createdAt: string;
-  likes: number;
-  liked: boolean;
+};
+
+export type DbQuestion = {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  best_answer_id: string | null;
+  created_at: string;
+};
+
+export type DbAnswer = {
+  id: string;
+  question_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+};
+
+// ホームの質問一覧カードで使う表示用の型
+export type QuestionListItem = {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  createdAt: string;
+  answerCount: number;
+  hasBestAnswer: boolean;
+};
+
+// 回答一覧で使う表示用の型
+export type AnswerView = {
+  id: string;
+  body: string;
+  author: string;
+  authorId: string;
+  createdAt: string;
+  isBestAnswer: boolean;
+};
+
+// 質問詳細で使う表示用の型
+export type QuestionDetailView = {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  authorId: string;
+  createdAt: string;
+  bestAnswerId: string | null;
 };

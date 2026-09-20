@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
-export type PopularLog = {
+export type PopularQuestion = {
   id: string;
   author: string;
-  memo: string;
-  likes: number;
+  title: string;
+  answerCount: number;
 };
 
 export type SuggestedUser = {
@@ -16,23 +16,23 @@ export type SuggestedUser = {
   points: number;
 };
 
-type LogRow = {
+type QuestionRow = {
   id: string;
-  memo: string;
+  title: string;
   users: { name: string } | null;
-  likes: { user_id: string }[];
+  answers: { id: string }[];
 };
 
 export function useDiscoverSidebar() {
-  const [popularLogs, setPopularLogs] = useState<PopularLog[]>([]);
+  const [popularQuestions, setPopularQuestions] = useState<PopularQuestion[]>([]);
   const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
   const [isReady, setIsReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [logsResult, usersResult] = await Promise.all([
+    const [questionsResult, usersResult] = await Promise.all([
       supabase
-        .from("practice_logs")
-        .select("id, memo, users(name), likes(user_id)")
+        .from("questions")
+        .select("id, title, users(name), answers(id)")
         .order("created_at", { ascending: false })
         .limit(20),
       supabase
@@ -42,17 +42,17 @@ export function useDiscoverSidebar() {
         .limit(3),
     ]);
 
-    const logs = ((logsResult.data as unknown as LogRow[]) ?? [])
+    const questions = ((questionsResult.data as unknown as QuestionRow[]) ?? [])
       .map((row) => ({
         id: row.id,
         author: row.users?.name ?? "ゲスト",
-        memo: row.memo,
-        likes: row.likes.length,
+        title: row.title,
+        answerCount: row.answers.length,
       }))
-      .sort((a, b) => b.likes - a.likes)
+      .sort((a, b) => b.answerCount - a.answerCount)
       .slice(0, 3);
 
-    setPopularLogs(logs);
+    setPopularQuestions(questions);
     setSuggestedUsers(usersResult.data ?? []);
     setIsReady(true);
   }, []);
@@ -63,5 +63,5 @@ export function useDiscoverSidebar() {
     refresh();
   }, [refresh]);
 
-  return { popularLogs, suggestedUsers, isReady };
+  return { popularQuestions, suggestedUsers, isReady };
 }
