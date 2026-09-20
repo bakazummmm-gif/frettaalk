@@ -32,7 +32,7 @@ export function useDiscoverSidebar() {
     const [questionsResult, usersResult] = await Promise.all([
       supabase
         .from("questions")
-        .select("id, title, users(name), answers(id)")
+        .select("id, title, users(name), answers!question_id(id)")
         .order("created_at", { ascending: false })
         .limit(20),
       supabase

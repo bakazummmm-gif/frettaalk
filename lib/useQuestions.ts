@@ -34,7 +34,9 @@ export function useQuestions() {
   const refresh = useCallback(async () => {
     const { data, error: fetchError } = await supabase
       .from("questions")
-      .select("id, title, body, best_answer_id, created_at, users(name), answers(id)")
+      .select(
+        "id, title, body, best_answer_id, created_at, users(name), answers!question_id(id)"
+      )
       .order("created_at", { ascending: false });
 
     if (fetchError) {
