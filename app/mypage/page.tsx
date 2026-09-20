@@ -94,10 +94,11 @@ function StripeConnectSection() {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const data = await response.json();
+      const rawBody = await response.text();
+      const data = rawBody ? JSON.parse(rawBody) : {};
 
       if (!response.ok) {
-        throw new Error(data.error ?? "連携に失敗しました");
+        throw new Error(data.error ?? `連携に失敗しました(status: ${response.status})`);
       }
 
       window.location.href = data.url;
