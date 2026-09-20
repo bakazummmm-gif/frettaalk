@@ -106,7 +106,6 @@ export type DbQuestion = {
   user_id: string;
   title: string;
   body: string;
-  best_answer_id: string | null;
   advisor_only: boolean;
   created_at: string;
 };
@@ -119,6 +118,13 @@ export type DbAnswer = {
   created_at: string;
 };
 
+export type DbAnswerLike = {
+  id: string;
+  answer_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 // ホームの質問一覧カードで使う表示用の型
 export type QuestionListItem = {
   id: string;
@@ -127,7 +133,6 @@ export type QuestionListItem = {
   author: string;
   createdAt: string;
   answerCount: number;
-  hasBestAnswer: boolean;
   advisorOnly: boolean;
 };
 
@@ -138,7 +143,8 @@ export type AnswerView = {
   author: string;
   authorId: string;
   createdAt: string;
-  isBestAnswer: boolean;
+  likes: number;
+  liked: boolean;
 };
 
 // 質問詳細で使う表示用の型
@@ -149,6 +155,5 @@ export type QuestionDetailView = {
   author: string;
   authorId: string;
   createdAt: string;
-  bestAnswerId: string | null;
   advisorOnly: boolean;
 };

@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { useCurrentUser } from "@/lib/userStore";
 import { useAdvisorApplication } from "@/lib/useAdvisorApplication";
 import { usePracticeLogs } from "@/lib/usePracticeLogs";
+import { useReceivedLikes } from "@/lib/useReceivedLikes";
 import { getAccessToken } from "@/lib/auth";
 import PracticeLogForm from "@/components/PracticeLogForm";
 import PracticeCalendar from "@/components/PracticeCalendar";
@@ -168,6 +169,7 @@ function StripeConnectSection() {
 
 export default function MyPage() {
   const { user, isLoading } = useCurrentUser();
+  const { totalLikes, isReady: isLikesReady } = useReceivedLikes();
 
   if (isLoading) {
     return <p className="py-8 text-center text-sm text-neutral-400">読み込み中...</p>;
@@ -202,9 +204,14 @@ export default function MyPage() {
           <p className="font-semibold text-neutral-900 dark:text-neutral-100">
             {user.name}
           </p>
-          <p className="text-sm text-orange-600 dark:text-orange-400">
-            {user.points.toLocaleString()} pt
-          </p>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-orange-600 dark:text-orange-400">
+              {user.points.toLocaleString()} pt
+            </span>
+            <span className="text-neutral-500 dark:text-neutral-400">
+              👍 {isLikesReady ? totalLikes.toLocaleString() : "--"}
+            </span>
+          </div>
         </div>
       </div>
 

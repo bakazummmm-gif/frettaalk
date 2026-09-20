@@ -8,7 +8,6 @@ type QuestionRow = {
   id: string;
   title: string;
   body: string;
-  best_answer_id: string | null;
   advisor_only: boolean;
   created_at: string;
   users: { name: string } | null;
@@ -23,7 +22,6 @@ function mapRow(row: QuestionRow): QuestionListItem {
     author: row.users?.name ?? "ゲスト",
     createdAt: row.created_at,
     answerCount: row.answers.length,
-    hasBestAnswer: Boolean(row.best_answer_id),
     advisorOnly: row.advisor_only,
   };
 }
@@ -37,7 +35,7 @@ export function useQuestions() {
     const { data, error: fetchError } = await supabase
       .from("questions")
       .select(
-        "id, title, body, best_answer_id, advisor_only, created_at, users(name), answers!question_id(id)"
+        "id, title, body, advisor_only, created_at, users(name), answers!question_id(id)"
       )
       .order("created_at", { ascending: false });
 

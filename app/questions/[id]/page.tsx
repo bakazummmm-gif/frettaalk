@@ -12,13 +12,8 @@ export default function QuestionDetailPage() {
   const params = useParams();
   const questionId = params.id as string;
   const { user } = useCurrentUser();
-  const { question, answers, isReady, error, addAnswer, markBestAnswer } =
+  const { question, answers, isReady, error, addAnswer, toggleAnswerLike } =
     useQuestionDetail(questionId);
-
-  const handleAnswerSubmit = (body: string) => {
-    if (!user) return;
-    addAnswer(user.id, body);
-  };
 
   if (!isReady) {
     return (
@@ -44,7 +39,6 @@ export default function QuestionDetailPage() {
     );
   }
 
-  const isAsker = user?.id === question.authorId;
   const canAnswer = !question.advisorOnly || Boolean(user?.is_advisor);
 
   return (
@@ -96,8 +90,8 @@ export default function QuestionDetailPage() {
           <AnswerCard
             key={answer.id}
             answer={answer}
-            canMarkBest={isAsker}
-            onMarkBest={markBestAnswer}
+            canLike={Boolean(user)}
+            onToggleLike={toggleAnswerLike}
           />
         ))}
       </div>
@@ -120,7 +114,7 @@ export default function QuestionDetailPage() {
         </div>
       )}
 
-      {user && canAnswer && <AnswerForm onSubmit={handleAnswerSubmit} />}
+      {user && canAnswer && <AnswerForm onSubmit={addAnswer} />}
     </div>
   );
 }

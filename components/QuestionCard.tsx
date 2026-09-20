@@ -38,11 +38,6 @@ export default function QuestionCard({ question }: Props) {
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
           💬 回答{question.answerCount}件
         </span>
-        {question.hasBestAnswer && (
-          <span className="rounded-full bg-orange-50 px-2.5 py-1 font-semibold text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
-            ✅ 解決済み
-          </span>
-        )}
       </div>
     </Link>
   );
