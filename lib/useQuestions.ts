@@ -9,6 +9,7 @@ type QuestionRow = {
   title: string;
   body: string;
   best_answer_id: string | null;
+  advisor_only: boolean;
   created_at: string;
   users: { name: string } | null;
   answers: { id: string }[];
@@ -23,6 +24,7 @@ function mapRow(row: QuestionRow): QuestionListItem {
     createdAt: row.created_at,
     answerCount: row.answers.length,
     hasBestAnswer: Boolean(row.best_answer_id),
+    advisorOnly: row.advisor_only,
   };
 }
 
@@ -35,7 +37,7 @@ export function useQuestions() {
     const { data, error: fetchError } = await supabase
       .from("questions")
       .select(
-        "id, title, body, best_answer_id, created_at, users(name), answers!question_id(id)"
+        "id, title, body, best_answer_id, advisor_only, created_at, users(name), answers!question_id(id)"
       )
       .order("created_at", { ascending: false });
 
@@ -57,10 +59,10 @@ export function useQuestions() {
   }, [refresh]);
 
   const addQuestion = useCallback(
-    async (userId: string, title: string, body: string) => {
+    async (userId: string, title: string, body: string, advisorOnly: boolean) => {
       const { error: insertError } = await supabase
         .from("questions")
-        .insert({ user_id: userId, title, body });
+        .insert({ user_id: userId, title, body, advisor_only: advisorOnly });
 
       if (insertError) {
         setError(insertError.message);

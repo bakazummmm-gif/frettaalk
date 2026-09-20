@@ -21,8 +21,13 @@ export default function QuestionCard({ question }: Props) {
         </p>
       </div>
 
-      <h3 className="mb-1 font-bold text-neutral-900 dark:text-neutral-100">
+      <h3 className="mb-1 flex items-center gap-1.5 font-bold text-neutral-900 dark:text-neutral-100">
         {question.title}
+        {question.advisorOnly && (
+          <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
+            🎓 アドバイザー限定
+          </span>
+        )}
       </h3>
 
       <p className="mb-3 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400">

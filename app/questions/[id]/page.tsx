@@ -45,6 +45,7 @@ export default function QuestionDetailPage() {
   }
 
   const isAsker = user?.id === question.authorId;
+  const canAnswer = !question.advisorOnly || Boolean(user?.is_advisor);
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,8 +62,13 @@ export default function QuestionDetailPage() {
             {formatRelativeTime(question.createdAt)}
           </p>
         </div>
-        <h1 className="mb-2 text-lg font-bold text-neutral-900 dark:text-neutral-100">
+        <h1 className="mb-2 flex flex-wrap items-center gap-2 text-lg font-bold text-neutral-900 dark:text-neutral-100">
           {question.title}
+          {question.advisorOnly && (
+            <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
+              🎓 アドバイザー限定
+            </span>
+          )}
         </h1>
         <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
           {question.body}
@@ -96,9 +102,7 @@ export default function QuestionDetailPage() {
         ))}
       </div>
 
-      {user ? (
-        <AnswerForm onSubmit={handleAnswerSubmit} />
-      ) : (
+      {!user && (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-900">
           <Link
             href="/login"
@@ -109,6 +113,14 @@ export default function QuestionDetailPage() {
           すると回答できます
         </div>
       )}
+
+      {user && !canAnswer && (
+        <div className="rounded-2xl border border-dashed border-purple-300 bg-purple-50 p-4 text-center text-sm text-purple-600 dark:border-purple-500/50 dark:bg-purple-500/10 dark:text-purple-400">
+          🎓 この質問はアドバイザーのみ回答できます
+        </div>
+      )}
+
+      {user && canAnswer && <AnswerForm onSubmit={handleAnswerSubmit} />}
     </div>
   );
 }

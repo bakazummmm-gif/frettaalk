@@ -10,6 +10,7 @@ type QuestionRow = {
   title: string;
   body: string;
   best_answer_id: string | null;
+  advisor_only: boolean;
   created_at: string;
   users: { name: string } | null;
 };
@@ -32,7 +33,9 @@ export function useQuestionDetail(questionId: string) {
     const [questionResult, answersResult] = await Promise.all([
       supabase
         .from("questions")
-        .select("id, user_id, title, body, best_answer_id, created_at, users(name)")
+        .select(
+          "id, user_id, title, body, best_answer_id, advisor_only, created_at, users(name)"
+        )
         .eq("id", questionId)
         .maybeSingle(),
       supabase
@@ -70,6 +73,7 @@ export function useQuestionDetail(questionId: string) {
       authorId: questionRow.user_id,
       createdAt: questionRow.created_at,
       bestAnswerId: questionRow.best_answer_id,
+      advisorOnly: questionRow.advisor_only,
     });
 
     setAnswers(

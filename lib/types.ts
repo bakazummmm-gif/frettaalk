@@ -107,6 +107,7 @@ export type DbQuestion = {
   title: string;
   body: string;
   best_answer_id: string | null;
+  advisor_only: boolean;
   created_at: string;
 };
 
@@ -127,6 +128,7 @@ export type QuestionListItem = {
   createdAt: string;
   answerCount: number;
   hasBestAnswer: boolean;
+  advisorOnly: boolean;
 };
 
 // 回答一覧で使う表示用の型
@@ -148,4 +150,5 @@ export type QuestionDetailView = {
   authorId: string;
   createdAt: string;
   bestAnswerId: string | null;
+  advisorOnly: boolean;
 };

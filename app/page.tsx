@@ -10,9 +10,9 @@ export default function HomePage() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const { questions, isReady, error, addQuestion } = useQuestions();
 
-  const handleSubmit = (title: string, body: string) => {
+  const handleSubmit = (title: string, body: string, advisorOnly: boolean) => {
     if (!user) return;
-    addQuestion(user.id, title, body);
+    addQuestion(user.id, title, body, advisorOnly);
   };
 
   return (
