@@ -10,9 +10,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
   }
 
+  console.log(
+    "[/api/stripe/connect] accessToken先頭20文字:",
+    accessToken.slice(0, 20),
+    "長さ:",
+    accessToken.length
+  );
+
   const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
   if (authError || !authData.user) {
-    return NextResponse.json({ error: "認証に失敗しました" }, { status: 401 });
+    console.error("[/api/stripe/connect] 認証に失敗:", authError);
+    return NextResponse.json(
+      { error: `認証に失敗しました: ${authError?.message ?? "ユーザーが取得できません"}` },
+      { status: 401 }
+    );
   }
 
   const userId = authData.user.id;
