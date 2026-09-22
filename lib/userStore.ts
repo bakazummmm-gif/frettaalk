@@ -91,3 +91,12 @@ function getServerSnapshot(): State {
 export function useCurrentUser() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+// プロフィール画像などを更新した直後に、画面表示を最新化するために呼ぶ
+export async function refreshCurrentUser() {
+  const { data } = await supabase.auth.getSession();
+  const authUser = data.session?.user;
+  if (authUser) {
+    await loadProfile(authUser.id);
+  }
+}

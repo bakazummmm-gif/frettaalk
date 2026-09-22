@@ -7,6 +7,7 @@ import { useAdvisorApplication } from "@/lib/useAdvisorApplication";
 import { usePracticeLogs } from "@/lib/usePracticeLogs";
 import { useReceivedLikes } from "@/lib/useReceivedLikes";
 import { getAccessToken } from "@/lib/auth";
+import ProfileAvatarUploader from "@/components/ProfileAvatarUploader";
 import PracticeLogForm from "@/components/PracticeLogForm";
 import PracticeCalendar from "@/components/PracticeCalendar";
 
@@ -197,9 +198,11 @@ export default function MyPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-          {user.name.slice(0, 1)}
-        </span>
+        <ProfileAvatarUploader
+          userId={user.id}
+          name={user.name}
+          avatarUrl={user.avatar_url}
+        />
         <div>
           <p className="font-semibold text-neutral-900 dark:text-neutral-100">
             {user.name}

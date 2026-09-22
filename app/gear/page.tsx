@@ -8,7 +8,7 @@ import { useCurrentUser } from "@/lib/userStore";
 
 export default function GearPage() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { myGear, allGear, isReady, error, saveGear } = useGear();
+  const { myGear, allGear, isReady, error, saveGear, saveGearImage } = useGear();
 
   return (
     <div className="flex flex-col gap-4">
@@ -30,12 +30,14 @@ export default function GearPage() {
               label="メイン機材"
               gear={myGear.first}
               onSave={saveGear}
+              onImageSelect={saveGearImage}
             />
             <GearSlotForm
               gearType="second"
               label="サブ機材"
               gear={myGear.second}
               onSave={saveGear}
+              onImageSelect={saveGearImage}
             />
           </div>
         ) : (

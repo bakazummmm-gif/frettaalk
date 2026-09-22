@@ -167,6 +167,7 @@ export type MyGearSlot = {
   category: string;
   modelName: string;
   comment: string | null;
+  imageUrl: string | null;
 };
 
 // 機材図鑑の一覧で使う表示用の型(みんなの機材)
@@ -177,6 +178,8 @@ export type GearListItem = {
   category: string;
   modelName: string;
   comment: string | null;
+  imageUrl: string | null;
   author: string;
+  authorAvatarUrl: string | null;
   createdAt: string;
 };

@@ -18,23 +18,41 @@ function colorForName(name: string) {
 }
 
 const SIZES = {
-  sm: "h-8 w-8 text-xs",
-  md: "h-10 w-10 text-sm",
-  lg: "h-12 w-12 text-base",
+  sm: "h-8 w-8",
+  md: "h-10 w-10",
+  lg: "h-12 w-12",
+} as const;
+
+const TEXT_SIZES = {
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-base",
 } as const;
 
 type Props = {
   name: string;
+  src?: string | null;
   size?: keyof typeof SIZES;
 };
 
-export default function Avatar({ name, size = "md" }: Props) {
+export default function Avatar({ name, src, size = "md" }: Props) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={name}
+        className={`shrink-0 rounded-full object-cover ${SIZES[size]}`}
+      />
+    );
+  }
+
   const initial = name.trim().charAt(0).toUpperCase() || "?";
 
   return (
     <span
       aria-hidden
-      className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${colorForName(name)} ${SIZES[size]}`}
+      className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${colorForName(name)} ${SIZES[size]} ${TEXT_SIZES[size]}`}
     >
       {initial}
     </span>

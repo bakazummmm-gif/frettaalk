@@ -13,7 +13,7 @@ type Props = {
 export default function GearCard({ gear }: Props) {
   return (
     <div className="flex gap-3 border-b border-neutral-100 px-1 py-4 last:border-none dark:border-neutral-800">
-      <Avatar name={gear.author} />
+      <Avatar name={gear.author} src={gear.authorAvatarUrl} />
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -25,19 +25,32 @@ export default function GearCard({ gear }: Props) {
           </span>
         </div>
 
-        <p className="mt-0.5 font-bold text-neutral-900 dark:text-neutral-100">
-          {gear.brand} {gear.modelName}
-        </p>
+        <div className="mt-1.5 flex gap-3">
+          {gear.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={gear.imageUrl}
+              alt={gear.modelName}
+              className="h-16 w-16 shrink-0 rounded-xl object-cover"
+            />
+          )}
 
-        {gear.category && (
-          <p className="text-xs text-neutral-400">{gear.category}</p>
-        )}
+          <div className="min-w-0 flex-1">
+            <p className="font-bold text-neutral-900 dark:text-neutral-100">
+              {gear.brand} {gear.modelName}
+            </p>
 
-        {gear.comment && (
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-            {gear.comment}
-          </p>
-        )}
+            {gear.category && (
+              <p className="text-xs text-neutral-400">{gear.category}</p>
+            )}
+
+            {gear.comment && (
+              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                {gear.comment}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

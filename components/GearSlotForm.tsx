@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { GearType, MyGearSlot } from "@/lib/types";
 
 type Props = {
@@ -11,15 +11,23 @@ type Props = {
     gearType: GearType,
     values: { brand: string; category: string; modelName: string; comment: string }
   ) => void;
+  onImageSelect: (gearType: GearType, file: File) => void;
 };
 
-export default function GearSlotForm({ gearType, label, gear, onSave }: Props) {
+export default function GearSlotForm({
+  gearType,
+  label,
+  gear,
+  onSave,
+  onImageSelect,
+}: Props) {
   const [isEditing, setIsEditing] = useState(!gear);
   const [brand, setBrand] = useState(gear?.brand ?? "");
   const [category, setCategory] = useState(gear?.category ?? "");
   const [modelName, setModelName] = useState(gear?.modelName ?? "");
   const [comment, setComment] = useState(gear?.comment ?? "");
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,6 +47,14 @@ export default function GearSlotForm({ gearType, label, gear, onSave }: Props) {
     setIsEditing(false);
   };
 
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onImageSelect(gearType, file);
+    }
+    event.target.value = "";
+  };
+
   if (!isEditing && gear) {
     return (
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -54,17 +70,52 @@ export default function GearSlotForm({ gearType, label, gear, onSave }: Props) {
             編集
           </button>
         </div>
-        <p className="font-bold text-neutral-900 dark:text-neutral-100">
-          {gear.brand} {gear.modelName}
-        </p>
-        {gear.category && (
-          <p className="text-xs text-neutral-400">{gear.category}</p>
-        )}
-        {gear.comment && (
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-            {gear.comment}
-          </p>
-        )}
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800"
+          >
+            {gear.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={gear.imageUrl}
+                alt={gear.modelName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-xl">
+                📷
+              </span>
+            )}
+            <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-[10px] font-semibold text-transparent transition-colors group-hover:bg-black/40 group-hover:text-white">
+              変更
+            </span>
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <p className="font-bold text-neutral-900 dark:text-neutral-100">
+              {gear.brand} {gear.modelName}
+            </p>
+            {gear.category && (
+              <p className="text-xs text-neutral-400">{gear.category}</p>
+            )}
+            {gear.comment && (
+              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                {gear.comment}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
       </div>
     );
   }
@@ -107,6 +158,12 @@ export default function GearSlotForm({ gearType, label, gear, onSave }: Props) {
           rows={2}
           className="resize-none rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
         />
+
+        {!gear && (
+          <p className="text-xs text-neutral-400">
+            写真はまず保存してから追加できます
+          </p>
+        )}
 
         {error && <p className="text-xs text-red-500">{error}</p>}
 

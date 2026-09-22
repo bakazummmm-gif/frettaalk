@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
+import { uploadImage } from "./uploadImage";
 import { useCurrentUser } from "./userStore";
 import type { GearListItem, GearType, MyGearSlot } from "./types";
 
@@ -12,6 +13,7 @@ type MyGearRow = {
   category: string;
   model_name: string;
   comment: string | null;
+  image_url: string | null;
 };
 
 type AllGearRow = {
@@ -21,8 +23,9 @@ type AllGearRow = {
   category: string;
   model_name: string;
   comment: string | null;
+  image_url: string | null;
   created_at: string;
-  users: { name: string } | null;
+  users: { name: string; avatar_url: string | null } | null;
 };
 
 export function useGear() {
@@ -40,13 +43,13 @@ export function useGear() {
       supabase
         .from("my_gear")
         .select(
-          "id, gear_type, brand, category, model_name, comment, created_at, users(name)"
+          "id, gear_type, brand, category, model_name, comment, image_url, created_at, users(name, avatar_url)"
         )
         .order("created_at", { ascending: false }),
       userId
         ? supabase
             .from("my_gear")
-            .select("id, gear_type, brand, category, model_name, comment")
+            .select("id, gear_type, brand, category, model_name, comment, image_url")
             .eq("user_id", userId)
         : Promise.resolve({ data: [] as MyGearRow[], error: null }),
     ]);
@@ -65,7 +68,9 @@ export function useGear() {
         category: row.category,
         modelName: row.model_name,
         comment: row.comment,
+        imageUrl: row.image_url,
         author: row.users?.name ?? "ゲスト",
+        authorAvatarUrl: row.users?.avatar_url ?? null,
         createdAt: row.created_at,
       }))
     );
@@ -82,6 +87,7 @@ export function useGear() {
               category: row.category,
               modelName: row.model_name,
               comment: row.comment,
+              imageUrl: row.image_url,
             }
           : null;
 
@@ -131,11 +137,38 @@ export function useGear() {
     [user, refresh]
   );
 
+  const saveGearImage = useCallback(
+    async (gearType: GearType, file: File) => {
+      if (!user) return;
+
+      try {
+        const imageUrl = await uploadImage("gear-images", user.id, gearType, file);
+
+        const { error: updateError } = await supabase
+          .from("my_gear")
+          .update({ image_url: imageUrl })
+          .eq("user_id", user.id)
+          .eq("gear_type", gearType);
+
+        if (updateError) {
+          setError(updateError.message);
+          return;
+        }
+
+        await refresh(user.id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "画像のアップロードに失敗しました");
+      }
+    },
+    [user, refresh]
+  );
+
   return {
     myGear,
     allGear,
     isReady: !isUserLoading && !isLoading,
     error,
     saveGear,
+    saveGearImage,
   };
 }

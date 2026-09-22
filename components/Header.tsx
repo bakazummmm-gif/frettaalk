@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCurrentUser } from "@/lib/userStore";
 import { signOut } from "@/lib/auth";
+import Avatar from "@/components/Avatar";
 
 export default function Header() {
   const { user, isLoading } = useCurrentUser();
@@ -30,13 +31,16 @@ export default function Header() {
 
         {!isLoading &&
           (user ? (
-            <button
-              type="button"
-              onClick={() => signOut()}
-              className="rounded-full px-2.5 py-1.5 text-xs font-medium text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900"
-            >
-              ログアウト
-            </button>
+            <div className="flex items-center gap-1.5">
+              <Avatar name={user.name} src={user.avatar_url} size="sm" />
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="rounded-full px-2.5 py-1.5 text-xs font-medium text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900"
+              >
+                ログアウト
+              </button>
+            </div>
           ) : (
             <Link
               href="/login"
