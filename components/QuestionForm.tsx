@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Avatar from "@/components/Avatar";
 
 type Props = {
+  authorName: string;
   onSubmit: (title: string, body: string, advisorOnly: boolean) => void;
 };
 
-export default function QuestionForm({ onSubmit }: Props) {
+export default function QuestionForm({ authorName, onSubmit }: Props) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [advisorOnly, setAdvisorOnly] = useState(false);
@@ -36,55 +38,47 @@ export default function QuestionForm({ onSubmit }: Props) {
       onSubmit={handleSubmit}
       className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <h2 className="mb-3 text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-        質問を投稿する
-      </h2>
+      <div className="flex gap-3">
+        <Avatar name={authorName} />
 
-      <div className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-neutral-600 dark:text-neutral-400">
-            タイトル
-          </span>
+        <div className="flex flex-1 flex-col gap-2.5">
           <input
             type="text"
-            placeholder="例: Fコードがどうしても鳴らない"
+            placeholder="困っていることは?(例: Fコードがどうしても鳴らない)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-neutral-900 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+            className="rounded-xl border-none bg-neutral-100 px-3.5 py-2.5 text-sm font-semibold text-neutral-900 outline-none placeholder:font-normal placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-400 dark:bg-neutral-800 dark:text-neutral-100"
           />
-        </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-neutral-600 dark:text-neutral-400">
-            質問の内容
-          </span>
           <textarea
-            placeholder="困っていることを詳しく書こう"
+            placeholder="詳しく書いてみよう"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            rows={4}
-            className="resize-none rounded-lg border border-neutral-300 px-3 py-2 text-neutral-900 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
+            rows={3}
+            className="resize-none rounded-xl border-none bg-neutral-100 px-3.5 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-400 dark:bg-neutral-800 dark:text-neutral-100"
           />
-        </label>
 
-        <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-          <input
-            type="checkbox"
-            checked={advisorOnly}
-            onChange={(e) => setAdvisorOnly(e.target.checked)}
-            className="h-4 w-4 rounded border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-700"
-          />
-          アドバイザーのみ回答できるようにする
-        </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-full bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
+              <input
+                type="checkbox"
+                checked={advisorOnly}
+                onChange={(e) => setAdvisorOnly(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-purple-300 text-purple-500 focus:ring-purple-400"
+              />
+              🎓 アドバイザーのみ回答可
+            </label>
 
-        {error && <p className="text-xs text-red-500">{error}</p>}
+            <button
+              type="submit"
+              className="rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-orange-600"
+            >
+              質問する
+            </button>
+          </div>
 
-        <button
-          type="submit"
-          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
-        >
-          質問する
-        </button>
+          {error && <p className="text-xs font-medium text-red-500">{error}</p>}
+        </div>
       </div>
     </form>
   );

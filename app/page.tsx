@@ -19,7 +19,7 @@ export default function HomePage() {
     <div className="flex flex-col gap-4">
       {!isUserLoading &&
         (user ? (
-          <QuestionForm onSubmit={handleSubmit} />
+          <QuestionForm authorName={user.name} onSubmit={handleSubmit} />
         ) : (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-900">
             <Link href="/login" className="font-semibold text-orange-600 underline">
@@ -35,7 +35,7 @@ export default function HomePage() {
         </p>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
         {!isReady && (
           <p className="py-8 text-center text-sm text-neutral-400">
             読み込み中...

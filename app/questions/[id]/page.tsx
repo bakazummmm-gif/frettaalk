@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import AnswerForm from "@/components/AnswerForm";
 import AnswerCard from "@/components/AnswerCard";
+import Avatar from "@/components/Avatar";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useQuestionDetail } from "@/lib/useQuestionDetail";
 import { useCurrentUser } from "@/lib/userStore";
@@ -48,25 +49,33 @@ export default function QuestionDetailPage() {
       </Link>
 
       <article className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-            {question.author}
-          </p>
-          <p className="text-xs text-neutral-400">
-            {formatRelativeTime(question.createdAt)}
-          </p>
+        <div className="flex gap-3">
+          <Avatar name={question.author} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                {question.author}
+              </p>
+              <span aria-hidden className="text-neutral-300 dark:text-neutral-600">
+                ・
+              </span>
+              <p className="text-xs text-neutral-400">
+                {formatRelativeTime(question.createdAt)}
+              </p>
+            </div>
+            <h1 className="mt-0.5 flex flex-wrap items-center gap-2 text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              {question.title}
+              {question.advisorOnly && (
+                <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-bold text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
+                  🎓 アドバイザー限定
+                </span>
+              )}
+            </h1>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+              {question.body}
+            </p>
+          </div>
         </div>
-        <h1 className="mb-2 flex flex-wrap items-center gap-2 text-lg font-bold text-neutral-900 dark:text-neutral-100">
-          {question.title}
-          {question.advisorOnly && (
-            <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
-              🎓 アドバイザー限定
-            </span>
-          )}
-        </h1>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-          {question.body}
-        </p>
       </article>
 
       {error && (
@@ -79,7 +88,7 @@ export default function QuestionDetailPage() {
         回答 {answers.length}件
       </h2>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col">
         {answers.length === 0 && (
           <p className="py-4 text-center text-sm text-neutral-400">
             まだ回答がありません。最初の回答をしよう!
@@ -114,7 +123,9 @@ export default function QuestionDetailPage() {
         </div>
       )}
 
-      {user && canAnswer && <AnswerForm onSubmit={addAnswer} />}
+      {user && canAnswer && (
+        <AnswerForm authorName={user.name} onSubmit={addAnswer} />
+      )}
     </div>
   );
 }
