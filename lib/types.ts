@@ -157,3 +157,26 @@ export type QuestionDetailView = {
   createdAt: string;
   advisorOnly: boolean;
 };
+
+export type GearType = "first" | "second";
+
+// マイページ(機材図鑑)で自分の機材を編集する時に使う型
+export type MyGearSlot = {
+  id: string;
+  brand: string;
+  category: string;
+  modelName: string;
+  comment: string | null;
+};
+
+// 機材図鑑の一覧で使う表示用の型(みんなの機材)
+export type GearListItem = {
+  id: string;
+  gearType: GearType;
+  brand: string;
+  category: string;
+  modelName: string;
+  comment: string | null;
+  author: string;
+  createdAt: string;
+};
